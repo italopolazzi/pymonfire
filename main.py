@@ -1,14 +1,31 @@
-from firebase import firebase
-from mongodb import mongodb
+from firebase import MyFirebase
+from mongodb import MyMongo
 
-collection = 'users'
+class Pymonfire:
+    collection = None
+    collect = None
 
-# true: {true => firebase, false => mongodb}, false: {false => firebase, true => mongodb}
-coletar = not True
+    def __init__(self, config):
+        # Coleção de dados de onde serão trabalhados os documentos
+        self.collection = config.get('collection', 'users')
+        print(self.collection)
+        # Variável de controle para coleatar dados do firebase
+        # Ou armazenar no MongoDB
+        # True: ativa as funções de trabalho com o Firebase
+        # False: ativa as funções de trabalho com o MongoDB
+        self.collect = config.get('collect', True)
 
-func = firebase(collection) if coletar else mongodb()
+    # Retorna o cursor com todos os documentos da coleção escolhida baseada na collect
+    def queryCursors(self,):
+        collection = self.collection
+        return MyFirebase(collection).getDocs() if self.collect else MyMongo(collection).getDocs()
 
-queryCursor = func
+    # Percorre o cursor e imprime os dados
+    def print(self):
+        for doc in self.queryCursors():
+            print(doc.to_dict() if self.collect else doc)
 
-for doc in queryCursor:
-    print(doc)
+
+pmf = Pymonfire({'collect': False})
+pmf.print()
+

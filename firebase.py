@@ -2,13 +2,12 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-def firebase(firebase_collection):
-  cred = credentials.Certificate('src/json/keys.json')
-  firebase_admin.initialize_app(cred)
+class MyFirebase:
+    def __init__(self, collection):
+        self.cred = credentials.Certificate('src/json/keys.json')
+        firebase_admin.initialize_app(self.cred)
+        self.db = firestore.client()
+        self.coll = self.db.collection(collection)
 
-  db = firestore.client()
-
-  users_ref = db.collection(firebase_collection)
-  docs = users_ref.get()
-
-  return docs
+    def getDocs(self):
+        return self.coll.get()

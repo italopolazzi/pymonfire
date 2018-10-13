@@ -1,11 +1,11 @@
 from pymongo import MongoClient
 
-def mongodb(*args):
-    client = MongoClient('mongodb://localhost:27017/')
 
-    db = client.firebase
-    col = db.users
+class MyMongo:
+    def __init__(self, collection):
+        self.client = MongoClient('mongodb://localhost:27017/')
+        self.db = self.client.firebase
+        self.coll = self.db.get_collection(collection)
 
-    docs = col.find()
-
-    return docs
+    def getDocs(self):
+        return self.coll.find()
