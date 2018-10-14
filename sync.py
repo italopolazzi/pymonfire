@@ -1,32 +1,38 @@
 from pymonfire import Pymonfire
 from datetime import datetime, timezone, timedelta
-
-
+import bson
+import json
 class SyncPMF:
     def __init__(self):
         self.myPMF = Pymonfire({})
+        self.key, self.op, self.value = 'updatedAt', '<', datetime.now(
+            timezone.utc) - timedelta(minutes=3)
 
-    # def getFirebaseDocsBasedOnDateOfUpdated(self):
-    #     return self.myPMF.myFirebase.coll.where('user', '==', '').get()
-    def getFirebaseDocsBasedOnDateOfUpdated(self, params):
+        self.fb_data = self.getFirebaseDocsBasedOnDateOfUpdated()
+        self.mg_data = []
+        self.sync()
+        self.result = self.udateMongoDBDocsBasedOnDateOfUpdate()
+
+        print('collected' if self.result else 'not collected')
+
+    def getFirebaseDocsBasedOnDateOfUpdated(self):
         try:
-            return self.myPMF.myFirebase.getWhere(params['key'], params['op'], params['value'])
+            return self.myPMF.myFirebase.getWhere(self.key, self.op, self.value)
         except Exception as err:
             print(type(err), err)
 
+    def udateMongoDBDocsBasedOnDateOfUpdate(self):
+        return self.myPMF.myMongo.insertMany(self.mg_data)
 
-sync = SyncPMF()
-past3days = datetime.now(timezone.utc) - timedelta(days=3)
+    def sync(self):
+        for doc in self.fb_data:
+            temp = doc.to_dict()
+            temp['_id'] = doc.id
+            temp['proccessed'] = False
+            self.mg_data.append(temp)
+            # print(self.mg_data)
 
-for doc in sync.getFirebaseDocsBasedOnDateOfUpdated({
-    'key': 'updatedAt',
-    'op': '<',
-    'value': past3days
-}):
-    print(doc.to_dict())
 
-# print('inserted' if (pmf.insertOne(data2)) else 'not inserted')
 
-# print('updated' if (pmf.updateOne(document_to_update())) else 'not updated')
 
-# db.collection(u'data').document(u'one').set(data)
+v = SyncPMF()

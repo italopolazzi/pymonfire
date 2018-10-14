@@ -1,0 +1,28 @@
+{
+    "_id": "T76GFBng0GODhnm8siIuHFvDI8k1",
+    "friends": [
+        "iXLhIvLyWaWM8FN4rJxQk3pdv9D2"
+    ],
+    "bio": "odeio s� alguns nerds",
+    "genre": 1,
+    "birthAt": "datetime.datetime(1997,4,7,9,30, tzinfo=<UTC>)",
+    "fname": "�talo",
+    "password": "master_pol#89",
+    "lname": "Polazzi Ferreira",
+    "email": "italo@lukeit.com",
+    "tweets": {
+        "my": {
+            "aleatorio4": "Pode ser @lukeklm",
+            "aleatorio6": "Testandooo...",
+            "aleatorio5": "Cansado",
+            "aleatorio3": "Nem sei @lukeklm"
+        },
+        "linked": [
+            "aleatorio2"
+        ]
+    },
+    "updatedAt": "datetime.datetime(2018,10,14,6,5,43,308916, tzinfo=<UTC>)",
+    "country": 0,
+    "user": "itpzzi",
+    "proccessed": false
+}

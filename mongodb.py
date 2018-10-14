@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 
 
 class MyMongo:
@@ -12,3 +12,15 @@ class MyMongo:
 
     def insertOne(self, datum):
         return self.coll.insert_one(datum)
+
+    def insertMany(self, data):
+        for doc in data:
+            try:
+                self.coll.insert_one(doc)
+            except errors.DuplicateKeyError as duplicated:
+                print(type(duplicated), duplicated)
+                continue
+            except Exception as e:
+                print(type(e), e)
+                return False
+        return True

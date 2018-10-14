@@ -1,0 +1,27 @@
+{
+    "tweets": {
+        "my": {
+            "aleatorio1": "Hoje comi hamb�rguer!",
+            "aleatorio2": "Joguei muito @itpzzi"
+        },
+        "linked": [
+            "aleatorio3",
+            "aleatorio4"
+        ]
+    },
+    "updatedAt": "datetime.datetime(2018,10,14,6,8,50,467523, tzinfo=<UTC>)",
+    "country": 0,
+    "user": "lukeklm",
+    "bio": "3289",
+    "friends": [
+        "T76GFBng0GODhnm8siIuHFvDI8k1"
+    ],
+    "date": "datetime.datetime(1996,2,4,2,0, tzinfo=<UTC>)",
+    "genre": 1,
+    "fname": "Lucas Henrique",
+    "password": "master_pol#89",
+    "_id": "iXLhIvLyWaWM8FN4rJxQk3pdv9D2",
+    "lname": "Sobrinho de Carvalho",
+    "email": "luke@lukeit.com",
+    "proccessed": false
+}
