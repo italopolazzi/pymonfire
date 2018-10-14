@@ -9,3 +9,6 @@ class MyMongo:
 
     def getDocs(self):
         return self.coll.find()
+
+    def insertOne(self, datum):
+        return self.coll.insert_one(datum)
