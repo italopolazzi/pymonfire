@@ -1,6 +1,5 @@
 from pymongo import MongoClient, errors
 
-
 class MyMongo:
     def __init__(self, collection):
         self.client = MongoClient('mongodb://localhost:27017/')
@@ -13,9 +12,14 @@ class MyMongo:
     def getWhere(self, params):
         return self.coll.find(params)
 
+    def updateMany(self, data):
+        for doc in data:
+            self.coll.update_one({'_id':doc['_id']}, {'$set': doc})
+        return True
+
     def insertOne(self, datum):
         return self.coll.insert_one(datum)
-
+    
     def insertMany(self, data):
         for doc in data:
             try:

@@ -1,8 +1,5 @@
 from pymonfire import Pymonfire
 from datetime import datetime, timezone, timedelta
-from firebase_admin import firestore
-import bson
-import json
 
 NOT_PROCCESSED, PROCCESSED, TO_COLLECT = 'NOT_PROCCESSED', 'PROCCESSED', 'TO_COLLECT'
 
@@ -16,10 +13,11 @@ class SyncPMF:
         self.fb_data = self.getFirebaseDocsBasedOnDateOfUpdated()
         
         self.prepareMongoData()
-        self.result = self.udateMongoDBDocsBasedOnDateOfUpdate()
+        self.result = self.insertMongoDBDocs(self.mg_data)
         print('collected' if self.result else 'not collected')
 
-        self.fb_new_data = self.proccessDataInNTLK()
+        self.mg_new_data = self.proccessDataInNTLK()
+        self.fb_new_data = self.mg_new_data
         self.setFirebaseProccessedData()
 
     def getFirebaseDocsBasedOnDateOfUpdated(self):
@@ -35,8 +33,11 @@ class SyncPMF:
             user_ref = self.myPMF.myFirebase.coll.document(id)
             user_ref.update(doc)
 
-    def udateMongoDBDocsBasedOnDateOfUpdate(self):
+    def insertMongoDBDocs(self, data):
         return self.myPMF.myMongo.insertMany(self.mg_data)
+
+    def updateMongoDBDocs(self, data):
+        return self.myPMF.myMongo.updateMany(data)
 
     def prepareMongoData(self):
         for doc in self.fb_data:
@@ -59,9 +60,7 @@ class SyncPMF:
             doc['pymonfire_tag'] = PROCCESSED
             doc['updatedAt'] = datetime.now(timezone.utc)
             result.append(doc)
+        self.updateMongoDBDocs(result)
         return result
-
-
-
 
 v = SyncPMF()
