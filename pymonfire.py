@@ -32,9 +32,12 @@ class Pymonfire:
     def mgInsertOne(self, datum):
         return self.myMongo.insertOne(datum)
 
+    def mgGetWhere(self, params):
+        return self.myMongo.getWhere(params)
+
     def fbUpdateOne(self, data):
         id = data["_id"]
         return self.myFirebase.updateOne(id, data)
 
-    def fbGetWhere(self, params):
-        return self.myFirebase.getWhere(params)
+    def fbGetWhere(self, k, o, v):
+        return self.myFirebase.getWhere(k, o, v)

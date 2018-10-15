@@ -9,6 +9,9 @@ class MyMongo:
 
     def getDocs(self):
         return self.coll.find()
+    
+    def getWhere(self, params):
+        return self.coll.find(params)
 
     def insertOne(self, datum):
         return self.coll.insert_one(datum)
