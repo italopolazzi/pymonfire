@@ -8,6 +8,9 @@ class MyFirebase:
         self.cred = credentials.Certificate('./src/json/keys.json')
         firebase_admin.initialize_app(self.cred)
         self.db = firestore.client()
+        self.setCollection(collection)
+
+    def setCollection(self, collection):
         self.coll = self.db.collection(collection)
 
     def getDocs(self):

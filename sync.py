@@ -4,57 +4,70 @@ from datetime import datetime, timezone, timedelta
 
 NOT_PROCCESSED, PROCCESSED, TO_COLLECT = 'NOT_PROCCESSED', 'PROCCESSED', 'TO_COLLECT'
 
-
 class SyncPMF:
     def __init__(self):
-        self.mode_collect = 'COLLECT_USERS'
         self.collectUsers()
-        self.mode_collect = 'COLLECT_USERS'
-        self.collectQuestions()
 
     def collectUsers(self):
-        print("PULANDO...")
-        # self.myPMF = Pymonfire({'collect': True, 'collection': 'users'})
-        # self.key1, self.op1, self.value1 = 'updatedAt', '<', datetime.now(
-        #     timezone.utc) - timedelta(minutes=3)
+        self.mode_collect = 'COLLECT_USERS'
 
-        # self.mg_data = []
-        # print("COLETANDO DOCUMENTOS BASEADO NA DATA DE ATUALIZAÇÃO SEGUINDO A REGRA...")
-        # self.fb_data = self.getFirebaseDocsBasedOnDateOfUpdated()
+        self.myPMF = Pymonfire()
+        self.key1, self.op1, self.value1 = 'updatedAt', '<', datetime.now(
+            timezone.utc) - timedelta(minutes=3)
 
-        # print("PREPARANDO DADOS PARA O MONGODB...")
-        # self.prepareMongoData()
-        # print("INSERINDO DADOS COLETADOS NO MONGODB...")
-        # self.result = self.insertMongoDBDocs(self.mg_data)
-        # print('collected' if self.result else 'not collected')
+        self.mg_data_users = []
+        print("COLETANDO DOCUMENTOS BASEADO NA DATA DE ATUALIZAÇÃO SEGUINDO A REGRA...")
+        self.fb_data = self.getFirebaseDocsBasedOnDateOfUpdated()
 
-        # print("PROCESSANDO DADOS NO NTLK...")
-        # self.mg_new_data = self.proccessDataInNTLK()
-        # print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
-        # self.fb_new_data = self.mg_new_data
-        # self.setFirebaseProccessedData()
+        print("PREPARANDO DADOS PARA O MONGODB...")
+        self.prepareMongoData()
+        print("INSERINDO USUÁRIOS COLETADOS NO MONGODB...")
+        self.result = self.insertMongoDBUsers(self.mg_data_users)
+        res_msg = 'users collected'
+        print(res_msg if self.result else 'NOT! {}'.format(res_msg))
+        
+        if(self.result):
+            self.mode_collect = 'COLLECT_QUESTIONS'
+            print("DEFININDO A COLEÇÃO DO FIREBASE COMO QUESTIONS...")
+            self.myPMF.fbSetCollection('questions')
 
-    def collectQuestions(self):
-        self.mode_collect = 'COLLECT_QUESTIONS'
-        self.myPMF = Pymonfire({'collect': True, 'collection': 'questions'})
-        self.key1, self.op1, self.value1 = 'sender', '==', '0x7EfHXFXcVEPJ25clY9sC4Y1Bf2'
+            print("PERCORRENDO USUÁRIOS NÃO PROCESSADOS SALVOS NO MONGODB...")
+            users_ids = self.getNotProccessedUsersIds()
+            # SETA O MONGODB DO PYMONFIRE PARA ARMAZENAR EM QUESTIONS
+            self.myPMF.mgSetCollection('questions')
+            for user_id in users_ids:
+                self.collectQuestions(user_id)
+            
+            print("PERGUNTAS DE TODOS USUÁRIOS NÃO PROCESSADOS COLETADAS...")
+
+            # print("PROCESSANDO DADOS NO NTLK...")
+            # self.mg_new_data = self.proccessDataInNTLK()
+            # print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
+            # self.fb_new_data = self.mg_new_data
+            # self.setFirebaseProccessedData()
+
+    def getNotProccessedUsersIds(self):
+        temp = []
+        users_not_proccessed = self.myPMF.mgGetWhere({'pymonfire_tag': NOT_PROCCESSED})
+        for user in users_not_proccessed:
+            temp.append(user['_id'])
+        return temp
+
+    def collectQuestions(self, sender):
+        self.key1, self.op1, self.value1 = 'sender', '==', sender
         self.key2, self.op2, self.value2 = 'status', '==', 1
 
-        self.mg_data = False
+        self.mg_data_questions = False
         print("COLETANDO DOCUMENTOS BASEADO NO SENDER E STATUS SEGUINDO A REGRA...")
         self.fb_data = self.getFirebaseDocsBasedOnSenderAndStatus()
 
         print("PREPARANDO DADOS PARA O MONGODB...")
-        self.prepareMongoData()
-        # print("INSERINDO DADOS COLETADOS NO MONGODB...")
-        # self.result = self.insertMongoDBDocs(self.mg_data)
-        # print('collected' if self.result else 'not collected')
-
-        # print("PROCESSANDO DADOS NO NTLK...")
-        # self.mg_new_data = self.proccessDataInNTLK()
-        # print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
-        # self.fb_new_data = self.mg_new_data
-        # self.setFirebaseProccessedData()
+        self.prepareMongoData(sender)
+        print(self.mg_data_questions)
+        print("INSERINDO PERGUNTAS COLETADAS NO MONGODB...")
+        self.result = self.insertMongoDBQuestions(self.mg_data_questions) if self.mg_data_questions else False
+        res_msg = 'questions for {} collected'.format(sender)
+        print(res_msg if self.result else 'NOT! {}'.format(res_msg))
 
     def getFirebaseDocsBasedOnDateOfUpdated(self):
         try:
@@ -69,45 +82,47 @@ class SyncPMF:
             print(type(err), err)
 
     def setFirebaseProccessedData(self):
+        # SETA O FIREBASE DO PYMONFIRE PARA ENVIAR PARA USUÁRIOS
+        self.myPMF.fbSetCollection('users')
         for doc in self.fb_new_data:
             # REMOVE A CHAVE DO MONGO _id E USA DE REFERÊNCIA PARA ATUALIZAR O DOCUMENTO NO FIREBASE
             id = str(doc.pop('_id'))
             user_ref = self.myPMF.myFirebase.coll.document(id)
             user_ref.update(doc)
 
-    def insertMongoDBDocs(self, data):
-        return self.myPMF.myMongo.insertMany(self.mg_data)
+    def insertMongoDBUsers(self, data):
+        return self.myPMF.myMongo.insertMany(self.mg_data_users)
+
+    def insertMongoDBQuestions(self, data):
+        return self.myPMF.myMongo.insertOne(self.mg_data_questions)
 
     def updateMongoDBDocs(self, data):
         return self.myPMF.myMongo.updateMany(data)
 
-    def prepareMongoData(self):
+    def prepareMongoData(self, sender = False):
         for doc in self.fb_data:
             # TRANSFORMA A REFERÊNCIA DO FIREBASE EM UM OBJETO DICT
             temp = doc.to_dict()
 
             # PEGA O id DO DOCUMENTO NO FIREBASE E TRANSFORMA EM UMA _id USADA NO MONGO
             # ADICIONA ALTERA A TAG PARA NÃO PROCESSADO
-            if (self.mode_collect == "COLLECT_USERS"):
+            if (not sender):
                 # aqui os dados do mongo são um array de usuário
                 temp['_id'] = doc.id
                 temp['pymonfire_tag'] = NOT_PROCCESSED
-                # self.mg_data.append(temp)
+                self.mg_data_users.append(temp)
             else:
                 # aqui os dados do mongo são um dicionário de perguntas mapeadas pelo remetente
-                print(temp)
-                if (not self.mg_data):
-                    self.mg_data = {
-                        '_id': temp['sender'],
+                if (not self.mg_data_questions):
+                    self.mg_data_questions = {
+                        '_id': sender,
                         'questions': []
                     }
-                    print('VAZIO', self.mg_data)
-                self.mg_data['questions'].append(temp)
-        print()
-        print()
-        print(self.mg_data)
+                self.mg_data_questions['questions'].append(temp)
 
     def proccessDataInNTLK(self):
+        # SETA O MONGODB DO PYMONFIRE PARA COLETAR DE USUÁRIOS
+        self.myPMF.mgSetCollection('users')
         temp = self.myPMF.mgGetWhere({'pymonfire_tag': NOT_PROCCESSED})
         # **************************************************************************
         # FAZER O PROCESSAMENTO COM O NTLK AQUI

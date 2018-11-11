@@ -21,6 +21,8 @@ class Pymonfire:
         self.myMongo = MyMongo(self.collection)
         self.myFirebase = MyFirebase(self.collection)
 
+
+
     # Retorna o cursor com todos os documentos da coleção escolhida baseada na collect
     def queryCursors(self):
         return self.myFirebase.getDocs() if self.collect else self.myMongo.getDocs()
@@ -35,6 +37,12 @@ class Pymonfire:
 
     def mgGetWhere(self, params):
         return self.myMongo.getWhere(params)
+
+    def mgSetCollection(self, collection):
+        self.myMongo.setCollection(collection)
+
+    def fbSetCollection(self, collection):
+        self.myFirebase.setCollection(collection)
 
     def fbUpdateOne(self, data):
         id = data["_id"]
