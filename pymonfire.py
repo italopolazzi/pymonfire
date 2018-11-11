@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
 from firebase import MyFirebase
 from mongodb import MyMongo
-from datetime import datetime, timezone
+# from datetime import datetime, timezone
 from sample import document_to_update
 
 class Pymonfire:
     collection = None
     collect = None
 
-    def __init__(self, config):
+    def __init__(self, config = {}):
         # Coleção de dados de onde serão trabalhados os documentos
         self.collection = config.get('collection', 'users')
         # Variável de controle para coleatar dados do firebase
@@ -25,7 +26,7 @@ class Pymonfire:
         return self.myFirebase.getDocs() if self.collect else self.myMongo.getDocs()
 
     # Percorre o cursor e imprime os dados
-    def print(self):
+    def print_it(self):
         for doc in self.queryCursors():
             print(doc.to_dict() if self.collect else doc)
 
@@ -41,3 +42,6 @@ class Pymonfire:
 
     def fbGetWhere(self, k, o, v):
         return self.myFirebase.getWhere(k, o, v)
+
+    def fbGetWhereAnd(self, k1, o1, v1, k2, o2, v2):
+        return self.myFirebase.getWhereAnd(k1, o1, v1, k2, o2, v2)
