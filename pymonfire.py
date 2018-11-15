@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from firebase import MyFirebase
 from mongodb import MyMongo
-# from datetime import datetime, timezone
-from sample import document_to_update
 
 class Pymonfire:
     collection = None

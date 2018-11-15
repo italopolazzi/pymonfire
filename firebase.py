@@ -3,9 +3,12 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+import os
+dirname = os.path.dirname(__file__)
+
 class MyFirebase:
     def __init__(self, collection):
-        self.cred = credentials.Certificate('./src/json/keys.json')
+        self.cred = credentials.Certificate(os.path.join(dirname, 'keys.json'))
         firebase_admin.initialize_app(self.cred)
         self.db = firestore.client()
         self.setCollection(collection)
