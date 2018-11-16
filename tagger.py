@@ -25,7 +25,7 @@ class Tagger:
 			self._saveClassifier(self.classifier,os.path.join(dirname, 'classifier.obj'))
 		
 		print ('Tagger iniciado!\n')
-	
+
 	def classify(self, text):
 		
 		result = TextBlob(text)
