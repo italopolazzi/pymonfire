@@ -1,7 +1,6 @@
 #Define aplication credentials
 # Imports the Google Cloud client library
 import six
-import nltk
 from google.cloud import language
 from google.cloud.language import enums
 from google.cloud.language import types
