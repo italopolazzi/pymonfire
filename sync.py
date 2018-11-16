@@ -40,13 +40,13 @@ class SyncPMF:
             for user_id in users_ids:
                 self.collectQuestions(user_id)
 
-            print("PERGUNTAS DE TODOS USUÁRIOS NÃO PROCESSADOS COLETADAS...")
+                print("PERGUNTAS DE TODOS USUÁRIOS NÃO PROCESSADOS COLETADAS...")
 
-            print("PROCESSANDO DADOS NO NTLK...")
-            self.mg_new_data = self.proccessDataInNTLK()
-            print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
-            self.fb_new_data = self.mg_new_data
-            self.setFirebaseProccessedData()
+                print("PROCESSANDO DADOS NO NTLK...")
+                self.mg_new_data = self.proccessDataInNTLK()
+                print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
+                self.fb_new_data = self.mg_new_data
+                self.setFirebaseProccessedData()
 
     def getNotProccessedUsersIds(self):
         temp = []
@@ -57,12 +57,14 @@ class SyncPMF:
         return temp
 
     def collectQuestions(self, sender):
-        self.key1, self.op1, self.value1 = 'sender', '==', sender
-        self.key2, self.op2, self.value2 = 'status', '==', 1
-
         self.mg_data_questions = False
         print("COLETANDO DOCUMENTOS BASEADO NO SENDER E STATUS SEGUINDO A REGRA...")
-        self.fb_data = self.getFirebaseDocsBasedOnSenderAndStatus()
+        temp = []
+        temp += self.getFirebaseDocsAnd('sender',
+                                        '==', sender, 'status', '==', 1)
+        temp += self.getFirebaseDocsAnd('recipient',
+                                        '==', sender, 'status', '==', 1)
+        self.fb_data = temp
 
         print("PREPARANDO DADOS PARA O MONGODB...")
         self.prepareMongoData(sender)
@@ -79,9 +81,9 @@ class SyncPMF:
         except Exception as err:
             print(type(err), err)
 
-    def getFirebaseDocsBasedOnSenderAndStatus(self):
+    def getFirebaseDocsAnd(self, k1, o1, v1, k2, o2, v2):
         try:
-            return self.myPMF.myFirebase.getWhereAnd(self.key1, self.op1, self.value1, self.key2, self.op2, self.value2)
+            return self.myPMF.myFirebase.getWhereAnd(k1, o1, v1, k2, o2, v2)
         except Exception as err:
             print(type(err), err)
 
@@ -165,9 +167,11 @@ class SyncPMF:
     def countTags(self, questions):
         countTags = {}
         for question in questions:
+            question = question['text']
             answer = question['answer']['text']
-            # question = question.text
-            tags = self.procc.proccess_one(answer)['autoTag']
+            tags = []
+            tags += self.procc.proccess_one(question)['autoTag']
+            tags += self.procc.proccess_one(answer)['autoTag']
             for tag in tags:
                 if(tag in countTags):
                     countTags[tag] += 1
@@ -189,3 +193,7 @@ class SyncPMF:
                 break
         print("relevant_tags => ", relevant_tags)
         return relevant_tags
+
+
+print("INICIALIZANDO SINCRONIZAÇÃO...")
+v = SyncPMF()
