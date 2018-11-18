@@ -44,9 +44,9 @@ class SyncPMF:
 
                 print("PROCESSANDO DADOS NO NTLK...")
                 self.mg_new_data = self.proccessDataInNTLK()
-                print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
-                self.fb_new_data = self.mg_new_data
-                self.setFirebaseProccessedData()
+                #print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
+                #self.fb_new_data = self.mg_new_data
+                #self.setFirebaseProccessedData()
 
     def getNotProccessedUsersIds(self):
         temp = []
