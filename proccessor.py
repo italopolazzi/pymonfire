@@ -5,9 +5,13 @@ class Proccessor:
         self.tagger = mgcp()
 
     def proccess_one(self, text):
+        sentimento = self.tagger.sentiment(text)#['sentimento']
+        tags = self.tagger.classify(text)
+        
+        #print(u'Classify: {}  Tags: {}'.format(sentimento, tags))
         return {
-            "classify": self.tagger.sentiment(text)['sentimento'],
-            "autoTag": self.tagger.classify(text)
+            "classify": sentimento,
+            "autoTag": tags
         }
 
     def proccess_many(self, array):

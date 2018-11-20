@@ -4,10 +4,11 @@ from datetime import datetime, timezone, timedelta
 from proccessor import Proccessor
 
 NOT_PROCCESSED, PROCCESSED, TO_COLLECT = 'NOT_PROCCESSED', 'PROCCESSED', 'TO_COLLECT'
-
+COLLECTION_QUESTIONS, COLLECTIONS_USERS = 'questions', 'users'
 
 class SyncPMF:
     def __init__(self):
+        self.proc = Proccessor()
         self.collectUsers()
 
     def collectUsers(self):
@@ -31,20 +32,24 @@ class SyncPMF:
         if(self.result):
             self.mode_collect = 'COLLECT_QUESTIONS'
             print("DEFININDO A COLEÇÃO DO FIREBASE COMO QUESTIONS...")
-            self.myPMF.fbSetCollection('questions')
+            self.myPMF.fbSetCollection(COLLECTION_QUESTIONS)
 
             print("PERCORRENDO USUÁRIOS NÃO PROCESSADOS SALVOS NO MONGODB...")
             users_ids = self.getNotProccessedUsersIds()
             # SETA O MONGODB DO PYMONFIRE PARA ARMAZENAR EM QUESTIONS
-            self.myPMF.mgSetCollection('questions')
+            self.myPMF.mgSetCollection(COLLECTION_QUESTIONS)
+            i = 0
+            t = len(users_ids)
+            print ('TOTAL DE USUÁRIOS: {}'.format(t))
             for user_id in users_ids:
                 self.collectQuestions(user_id)
 
                 print("PERGUNTAS DE TODOS USUÁRIOS NÃO PROCESSADOS COLETADAS...")
-
-                print("PROCESSANDO DADOS NO NTLK...")
+                print("PROCESSANDO DADOS NO NTLK... ")
+                i += 1
+                print("Usuários processados:    {} / {}".format(i,t))
                 self.mg_new_data = self.proccessDataInNTLK()
-                #print("SETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
+                print("\nSETANDO DADOS PROCESSADOS PARA SEREM ENVIADOS AO FIREBASE...")
                 #self.fb_new_data = self.mg_new_data
                 #self.setFirebaseProccessedData()
 
@@ -60,19 +65,17 @@ class SyncPMF:
         self.mg_data_questions = False
         print("COLETANDO DOCUMENTOS BASEADO NO SENDER E STATUS SEGUINDO A REGRA...")
         temp = []
-        temp += self.getFirebaseDocsAnd('sender',
-                                        '==', sender, 'status', '==', 1)
-        temp += self.getFirebaseDocsAnd('recipient',
-                                        '==', sender, 'status', '==', 1)
+        temp += self.getFirebaseDocsAnd('sender','==', sender, 'status', '==', 1)
+        temp += self.getFirebaseDocsAnd('recipient','==', sender, 'status', '==', 1)
         self.fb_data = temp
 
         print("PREPARANDO DADOS PARA O MONGODB...")
         self.prepareMongoData(sender)
-        print(self.mg_data_questions)
+        #print(self.mg_data_questions)
         print("INSERINDO PERGUNTAS COLETADAS NO MONGODB...")
         self.result = self.insertMongoDBQuestions(
             self.mg_data_questions) if self.mg_data_questions else False
-        res_msg = 'questions for {} collected'.format(sender)
+        res_msg = 'questions for (({} collected'.format(sender)
         print(res_msg if self.result else 'NOT! {}'.format(res_msg))
 
     def getFirebaseDocsBasedOnDateOfUpdated(self):
@@ -89,7 +92,7 @@ class SyncPMF:
 
     def setFirebaseProccessedData(self):
         # SETA O FIREBASE DO PYMONFIRE PARA ENVIAR PARA USUÁRIOS
-        self.myPMF.fbSetCollection('users')
+        self.myPMF.fbSetCollection(COLLECTIONS_USERS)
         for doc in self.fb_new_data:
             # REMOVE A CHAVE DO MONGO _id E USA DE REFERÊNCIA PARA ATUALIZAR O DOCUMENTO NO FIREBASE
             id = str(doc.pop('_id'))
@@ -129,13 +132,12 @@ class SyncPMF:
 
     def proccessDataInNTLK(self):
         # SETA O MONGODB DO PYMONFIRE PARA COLETAR DE USUÁRIOS
-        self.myPMF.mgSetCollection('users')
+        self.myPMF.mgSetCollection(COLLECTIONS_USERS)
         users = self.myPMF.mgGetWhere({'pymonfire_tag': NOT_PROCCESSED})
         # **************************************************************************
         # FAZER O PROCESSAMENTO COM O NTLK AQUI
         # simulando que os dados foram processados
         # **************************************************************************
-        self.procc = Proccessor()
         result = []
         for user in users:
             user['my_tags'] = self.getUserQuestionsAndProccess(user)
@@ -151,13 +153,12 @@ class SyncPMF:
 
     def getUserQuestionsAndProccess(self, user):
         # SETA O MONGODB DO PYMONFIRE PARA COLETAR DE QUESTIONS
-        self.myPMF.mgSetCollection('questions')
+        self.myPMF.mgSetCollection(COLLECTION_QUESTIONS)
         # COLETA OS AS PERGUNTAS NO BUCKET DO USUÁRIO ATUAL
         cursor = self.myPMF.mgGetWhere({'_id': user['_id']})
-        user_questions_bucket = None
+        user_questions_bucket = []
         for item in cursor:
             user_questions_bucket = item['questions']
-        print(user, ' => ', user_questions_bucket)
         # CONTA AS TAGS (PALAVRAS) QUANTAS VEZES ELAS APARECEM EM TODAS AS RESPOSTAS
         tags_counted = self.countTags(user_questions_bucket)
         # SELECIONA AS TAGS MAIS RELEVANTES BASEADAS NAS QUE APARECEM MAIS VEZES
@@ -167,17 +168,17 @@ class SyncPMF:
     def countTags(self, questions):
         countTags = {}
         for question in questions:
-            question = question['text']
             answer = question['answer']['text']
+            question = question['text']
             tags = []
-            tags += self.procc.proccess_one(question)['autoTag']
-            tags += self.procc.proccess_one(answer)['autoTag']
+            tags += self.proc.proccess_one(question)['autoTag']
+            tags += self.proc.proccess_one(answer)['autoTag']
             for tag in tags:
                 if(tag in countTags):
                     countTags[tag] += 1
                 else:
                     countTags[tag] = 1
-        print('countTags => ', countTags)
+        #print('countTags => ', countTags)
         return countTags
 
     def getRelevantTags(self, countedTags):
@@ -187,11 +188,11 @@ class SyncPMF:
         relevant_tags = []
         for elem in listofTuplesDEC:
             if(len(relevant_tags) <= 5):
-                print(elem[0], " ::", elem[1])
+                #print(elem[0], " ::", elem[1])
                 relevant_tags.append(elem[0])
             else:
                 break
-        print("relevant_tags => ", relevant_tags)
+        #print("relevant_tags => ", relevant_tags)
         return relevant_tags
 
 

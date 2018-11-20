@@ -18,14 +18,14 @@ class MyCloudProcessor:
 		self.client = language.LanguageServiceClient.from_service_account_json('tcclukeit-6018bd3fabd0.json')
 		
 	# Faz a analise de sentimentos do do text
-	def sentiment(self, text = ''):
+	def sentiment(self, text=''):
 		document = types.Document( content=text, type=enums.Document.Type.PLAIN_TEXT)
 		sentiment = self.client.analyze_sentiment(document=document).document_sentiment
 
-		print('Text: {}'.format(text))
+		#print('Text: {}'.format(text))
 		# O atributo Score informa o valor do sentimento
 		# O atributo magnitude é a 'força' daquele sentimento no texto. Como se fosse a potência.
-		print('Sentiment Score: {}, Magnitude: {}'.format(sentiment.score, sentiment.magnitude))
+		#print('Sentiment Score: {}, Magnitude: {}'.format(sentiment.score, sentiment.magnitude))
 		
 		# Retorna uma valor de -1 até 1 de acordo com a polaridade do sentimento
 		# Onde:
@@ -48,6 +48,7 @@ class MyCloudProcessor:
 	
 	# Classifica o texto recebido de acordo com as entidades identificadas e as retorna como tags de assunto.
 	def classify(self, text=''):
+		#print(text, '==============================================================')
 		# para facilitar a analise, o texto é convertido para letras minúsculas
 		text = text.lower()
 		if isinstance(text, six.binary_type):
@@ -67,7 +68,7 @@ class MyCloudProcessor:
 		for entity in entities:
 			result.update({entity.name: entity.salience})
 		result = sorted(result.items(), key=lambda kv: kv[1], reverse=True)
-		print(result)
+		#print(result)
 		# retorna um array de strings com os nomes das entidades encontradas
 		return result
 	
