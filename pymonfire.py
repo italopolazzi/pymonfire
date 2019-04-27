@@ -9,7 +9,7 @@ class Pymonfire:
     def __init__(self, config = {}):
         # Coleção de dados de onde serão trabalhados os documentos
         self.collection = config.get('collection', 'users')
-        # Variável de controle para coleatar dados do firebase
+        # Variável de controle para coletar dados do firebase
         # Ou armazenar no MongoDB
         # True: ativa as funções de trabalho com o Firebase
         # False: ativa as funções de trabalho com o MongoDB
@@ -18,8 +18,6 @@ class Pymonfire:
         # Classes de gerenciamento dos bancos
         self.myMongo = MyMongo(self.collection)
         self.myFirebase = MyFirebase(self.collection)
-
-
 
     # Retorna o cursor com todos os documentos da coleção escolhida baseada na collect
     def queryCursors(self):

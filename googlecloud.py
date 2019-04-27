@@ -15,7 +15,7 @@ from textblob.exceptions import NotTranslated
 #=============
 class MyCloudProcessor:
 	def __init__(self): # Faz a inicialização do cliente
-		self.client = language.LanguageServiceClient.from_service_account_json('tcclukeit-6018bd3fabd0.json')
+		self.client = language.LanguageServiceClient.from_service_account_json('credentials/gcloud_keys.json')
 		
 	# Faz a analise de sentimentos do do text
 	def sentiment(self, text=''):

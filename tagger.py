@@ -1,7 +1,6 @@
 from textblob import TextBlob
 from textblob import classifiers
 
-
 import nltk
 import json
 import pickle
